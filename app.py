@@ -6,35 +6,23 @@ import streamlit as st
 from urllib.parse import quote_plus
 import os
 
-# Convert a Google Drive sharing link into a direct download link
-def drive_direct_download_url(share_url):
-    file_id = share_url.split("/d/")[1].split("/")[0]
-    return f"https://drive.google.com/uc?export=download&id={file_id}"
+# --- Load data ---
+# --- Load data from GitHub Releases ---
+MOVIE_DICT_URL = "https://github.com/nenusudharshan/movie-recommender/releases/download/v1.0/movie_dict.pkl"
+MOVIES_URL = "https://github.com/nenusudharshan/movie-recommender/releases/download/v1.0/movies.pkl"
+SIMILARITY_URL = "https://github.com/nenusudharshan/movie-recommender/releases/download/v1.0/similarity.pkl"
 
 @st.cache_data(show_spinner=True)
-def load_pickle_from_drive(share_url, local_filename):
-    direct_url = drive_direct_download_url(share_url)
+def load_pickle(url):
+    response = requests.get(url)
+    return pickle.loads(response.content)
 
-    if not os.path.exists(local_filename):
-        with open(local_filename, "wb") as f:
-            response = requests.get(direct_url)
-            f.write(response.content)
-
-    # Load the pickle file
-    with open(local_filename, "rb") as f:
-        return pickle.load(f)
-
-# --- Load data ---
-MOVIE_DICT_URL = "https://drive.google.com/file/d/1aeRf0MpwZlOzwIRcTgYgoOxxl7wNMNTd/view?usp=sharing"
-MOVIES_URL = "https://drive.google.com/file/d/1hXHQarlaznnM6lL8QITEluxBPolxEccm/view?usp=sharing"
-SIMILARITY_URL = "https://drive.google.com/file/d/1l_Gekea7kqHmnsOQyP4iOWTQuVWA4wQA/view?usp=sharing"
-
-movies_dict = load_pickle_from_drive(MOVIE_DICT_URL, "movie_dict.pkl")
+movies_dict = load_pickle(MOVIE_DICT_URL)
 movies = pd.DataFrame(movies_dict)
 
-movies_list = load_pickle_from_drive(MOVIES_URL, "movies.pkl")
+movies_list = load_pickle(MOVIES_URL)
+similarity = load_pickle(SIMILARITY_URL)
 
-similarity = load_pickle_from_drive(SIMILARITY_URL, "similarity.pkl")
 
 
 # --- Secrets / API key ---
